@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>JS Miner Demo</title>
+    <meta property="og:image" content="http://45.77.21.122:3000/a.jpg">
+	<meta property="og:title" content="Simple Miner UI Demo - 網頁挖礦測試">
+	<meta property="og:description" content="歡迎來一起挖礦 :D">
+    <script src="lib/coinhive.min.js"></script>
+    <!-- Global Site Tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-39220034-11"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments)};
+    gtag('js', new Date());
+
+    gtag('config', 'UA-39220034-11');
+    </script>
+</head>
+<body>
+    <img src="https://media.giphy.com/media/7DLxpJ3jKk5MI/giphy.gif" width="220" />
+    
+    <p style="font-size: 11pt;" id="status"></p>
+    <p style="font-size: 11pt;" id="hashesPerSecond"></p>
+    <p style="font-size: 11pt;" id="getTotalHashes"></p>
+    <p style="font-size: 11pt;" id="stopped"></p>
+    
+    <script>
+        // A value of 0 means no throttling (i.e. full speed), a value of 0.5 means that threads will stay idle 50% of the time, with 0.8 they will stay idle 80% of the time.
+        var cpuConfig = { throttle: 0.2 }
+        if (navigator.hardwareConcurrency > 1) {
+            cpuConfig.threads = Math.round(navigator.hardwareConcurrency) * 2;
+        }
+        
+        // Put your SITE_KEY here.
+        var miner = new CoinHive.Anonymous('1ByZp2G7S22jqMuVwz1rLjI7y5FtZLCQ', cpuConfig);
+        
+        miner.start(CoinHive.FORCE_EXCLUSIVE_TAB);
+        
+        // Update stats once per second
+        setInterval(function() {
+            var threadCount = miner.getNumThreads();
+            var hashesPerSecond = Math.round(miner.getHashesPerSecond());
+            var getTotalHashes = miner.getTotalHashes();
+        
+            try {
+                navigator.getBattery().then(function(battery) {
+                    if (battery.level < 0.25 && battery.charging == false) {
+                        miner.stop();
+                        document.getElementById("stopped").innerHTML = "偵測到電量不足已停止運算";
+                    }
+                });
+            } catch(e) { console.log(e); }
+            
+            if (miner.isRunning()) {
+                document.getElementById("status").innerHTML = "狀態: 正在使用 " + threadCount + " 個執行緒";
+                document.getElementById("hashesPerSecond").innerHTML = "您的算力: " + hashesPerSecond + " H/s";
+                document.getElementById("getTotalHashes").innerHTML = "您已貢獻: " + getTotalHashes + " 次Hash";
+            } else {
+                document.getElementById("status").innerHTML = "狀態: 沒有在進行運算";
+            }
+        }, 1234);
+    </script>
+    <p>本頁面程式碼部分參考：<a href="https://gist.github.com/Lafudoci/f7d0ec6d082226f7f0e1fe2f3eebd146#file-xmrjsminer-html">Github</a></p>
+</body>
+</html>
